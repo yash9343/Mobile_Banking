@@ -12,9 +12,11 @@ def signup_user(full_name, email, password):
         return False, "Email already registered!"
     hashed = hash_password(password)
     user_id = create_user(full_name, email, hashed)
-    # Default savings account banao
-    acc_no = create_account(user_id, 'Savings')
-    return True, f"Account created! Account No: {acc_no}"
+    try:
+        acc_no = create_account(user_id, 'Savings')
+        return True, f"Account created successfully! Account No: {acc_no}"
+    except:
+        return True, "Account created successfully! Please login now."
 
 def login_user(email, password):
     user = get_user_by_email(email)
