@@ -58,7 +58,13 @@ def get_user_accounts(user_id):
 def create_account(user_id, account_type):
     conn = get_connection()
     cursor = conn.cursor()
-    acc_no = generate_account_number(account_type)
+    while True:
+        acc_no = generate_account_number(account_type)
+        cursor.execute(
+            "SELECT id FROM accounts WHERE account_number=%s", (acc_no,)
+        )
+        if not cursor.fetchone():
+            break
     cursor.execute(
         "INSERT INTO accounts (user_id, account_number, account_type, balance) VALUES (%s,%s,%s,%s)",
         (user_id, acc_no, account_type, 0.00)
