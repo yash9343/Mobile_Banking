@@ -1,5 +1,5 @@
 streamlit
-mysql-connector-python
+PyMySQL
 python-dotenv
 bcrypt==4.0.1
 pandas
