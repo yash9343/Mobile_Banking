@@ -1,4 +1,5 @@
-import mysql.connector
+import pymysql
+import pymysql.cursors
 from dotenv import load_dotenv
 import os
 import random
