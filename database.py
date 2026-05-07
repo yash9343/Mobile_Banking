@@ -8,13 +8,14 @@ import string
 load_dotenv()
 
 def get_connection():
-    return mysql.connector.connect(
+    return pymysql.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME"),
         port=int(os.getenv("DB_PORT", 3306)),
-        connection_timeout=30
+        cursorclass=pymysql.cursors.DictCursor,
+        connect_timeout=30
     )
 
 def generate_account_number(account_type):
@@ -22,10 +23,9 @@ def generate_account_number(account_type):
     digits = ''.join(random.choices(string.digits, k=9))
     return prefix.get(account_type, 'SB') + digits
 
-# ── USERS ──
 def get_user_by_email(email):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email=%s", (email,))
     user = cursor.fetchone()
     conn.close()
@@ -39,14 +39,13 @@ def create_user(full_name, email, password_hash):
         (full_name, email, password_hash)
     )
     conn.commit()
-    user_id = cursor.lastrowid
+    user_id = conn.insert_id()
     conn.close()
     return user_id
 
-# ── ACCOUNTS ──
 def get_user_accounts(user_id):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         "SELECT * FROM accounts WHERE user_id=%s ORDER BY created_at",
         (user_id,)
@@ -69,7 +68,7 @@ def create_account(user_id, account_type):
 
 def get_account_by_number(acc_no):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM accounts WHERE account_number=%s", (acc_no,))
     acc = cursor.fetchone()
     conn.close()
@@ -85,12 +84,11 @@ def update_balance(account_number, amount):
     conn.commit()
     conn.close()
 
-# ── TRANSACTIONS ──
 def add_transaction(from_acc, to_acc, amount, txn_type, description):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        """INSERT INTO transactions 
+        """INSERT INTO transactions
         (from_account, to_account, amount, transaction_type, description)
         VALUES (%s,%s,%s,%s,%s)""",
         (from_acc, to_acc, amount, txn_type, description)
@@ -100,7 +98,7 @@ def add_transaction(from_acc, to_acc, amount, txn_type, description):
 
 def get_mini_statement(account_number, limit=10):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute("""
         SELECT * FROM transactions
         WHERE from_account=%s OR to_account=%s
@@ -115,26 +113,23 @@ def transfer_money(from_acc, to_acc, amount, description):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Balance check
         cursor.execute(
             "SELECT balance FROM accounts WHERE account_number=%s", (from_acc,)
         )
-        balance = cursor.fetchone()[0]
+        row = cursor.fetchone()
+        balance = row['balance']
         if balance < amount:
             conn.close()
             return False, "Insufficient balance!"
 
-        # Debit sender
         cursor.execute(
             "UPDATE accounts SET balance=balance-%s WHERE account_number=%s",
             (amount, from_acc)
         )
-        # Credit receiver
         cursor.execute(
             "UPDATE accounts SET balance=balance+%s WHERE account_number=%s",
             (amount, to_acc)
         )
-        # Log transaction
         cursor.execute("""
             INSERT INTO transactions
             (from_account, to_account, amount, transaction_type, description)
