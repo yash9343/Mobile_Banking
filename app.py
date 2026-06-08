@@ -6,6 +6,7 @@ from database import (
     get_account_by_number, transfer_money,
     get_mini_statement, add_transaction, update_balance,init_db
 )
+init_db()
 
 st.set_page_config(
     page_title="SecureBank",
