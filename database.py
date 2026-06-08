@@ -16,7 +16,7 @@ def get_connection():
         port=int(os.getenv("DB_PORT", 3306)),
         cursorclass=pymysql.cursors.DictCursor,
         connect_timeout=30,
-        ssl_disabled=True
+        ssl={"ssl": True}
     )
 
 def generate_account_number(account_type):
