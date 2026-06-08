@@ -4,7 +4,7 @@ from auth import signup_user, login_user
 from database import (
     get_user_accounts, create_account,
     get_account_by_number, transfer_money,
-    get_mini_statement, add_transaction, update_balance
+    get_mini_statement, add_transaction, update_balance,init_db
 )
 
 st.set_page_config(
