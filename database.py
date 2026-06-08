@@ -19,6 +19,43 @@ def get_connection():
         ssl={"ssl": True}
     )
 
+def init_db():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            full_name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS accounts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            account_number VARCHAR(20) UNIQUE NOT NULL,
+            account_type VARCHAR(20) NOT NULL,
+            balance DECIMAL(12,2) DEFAULT 0.00,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            from_account VARCHAR(20),
+            to_account VARCHAR(20),
+            amount DECIMAL(12,2) NOT NULL,
+            transaction_type VARCHAR(20),
+            description VARCHAR(255),
+            transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
 def generate_account_number(account_type):
     prefix = {'Savings': 'SB', 'Current': 'CU', 'Salary': 'SA'}
     digits = ''.join(random.choices(string.digits, k=9))
