@@ -126,6 +126,12 @@ else:
     # ── TRANSFER ──
     elif menu == "💸 Transfer Money":
         st.title("💸 Transfer Money")
+        
+        if not accounts:
+            st.warning("⚠️ You Have Not Any Account!")
+            st.info("First Create Account by '➕ Add Account' menu")
+            st.stop()
+            
         acc_options = {
             f"{a['account_type']} — {a['account_number']} (₹{a['balance']:,.2f})": a['account_number']
             for a in accounts
@@ -156,6 +162,12 @@ else:
     # ── MINI STATEMENT ──
     elif menu == "📋 Mini Statement":
         st.title("📋 Mini Statement")
+        
+        if not accounts:
+            st.warning("⚠️ You Have Not Any Account!")
+            st.info("First Create Account by  '➕ Add Account' menu!")
+            st.stop()
+            
         acc_options = {
             f"{a['account_type']} — {a['account_number']}": a['account_number']
             for a in accounts
@@ -207,6 +219,12 @@ else:
     # ── DEPOSIT / WITHDRAW ──
     elif menu == "💰 Deposit / Withdraw":
         st.title("💰 Deposit / Withdraw")
+        
+        if not accounts:
+            st.warning("⚠️ You Have Not Any Account!")
+            st.info("First Create Acount by '➕ Add Account' menu!")
+            st.stop()
+            
         acc_options = {
             f"{a['account_type']} — {a['account_number']} (₹{a['balance']:,.2f})": a['account_number']
             for a in accounts
