@@ -8,15 +8,25 @@ import string
 load_dotenv()
 
 def get_connection():
+    import tempfile
+    ca_cert = os.getenv("DB_SSL_CA_CONTENT")
+    
+    if ca_cert:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False) as f:
+            f.write(ca_cert)
+            ca_path = f.name
+    else:
+        ca_path = None
+
     return pymysql.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME"),
-        port=int(os.getenv("DB_PORT", 3306)),
+        port=int(os.getenv("DB_PORT", 4000)),
         cursorclass=pymysql.cursors.DictCursor,
         connect_timeout=30,
-        ssl={"ssl": True}
+        ssl={"ca": ca_path} if ca_path else None
     )
 
 def init_db():
